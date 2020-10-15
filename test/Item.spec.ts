@@ -21,4 +21,22 @@ describe('createItem', () => {
       createItem({ name: 'foo', sellIn: 0, quality: 50 })
     ).to.not.throw();
   });
+
+  it('quality should be lower than or equal to 80 for legendary items', () => {
+    expect(() =>
+      createItem({
+        name: 'Sulfuras, Hand of Ragnaros',
+        sellIn: 0,
+        quality: 81,
+      })
+    ).to.throw();
+
+    expect(() =>
+      createItem({
+        name: 'Sulfuras, Hand of Ragnaros',
+        sellIn: 0,
+        quality: 80,
+      })
+    ).to.not.throw();
+  });
 });

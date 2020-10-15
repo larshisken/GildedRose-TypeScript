@@ -1,3 +1,5 @@
+import { itemConfig } from './itemConfig';
+
 // Belongs to the goblin in the corner
 export class Item {
   name: string;
@@ -13,7 +15,10 @@ export class Item {
 
 export const createItem = ({ name, quality, sellIn }: Item): Item => {
   const minQuality = 0;
-  const maxQuality = 50;
+
+  const { maxQuality } = itemConfig[name] || {
+    maxQuality: 50,
+  };
 
   if (quality < minQuality) {
     throw new Error(`Quality should be higher than or equal to ${minQuality}`);
