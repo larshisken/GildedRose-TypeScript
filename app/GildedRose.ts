@@ -1,4 +1,4 @@
-import { Item, updateItemQuality } from './Item';
+import { Item, updatedItem } from './Item';
 
 export class GildedRose {
   items: Item[];
@@ -8,7 +8,7 @@ export class GildedRose {
   }
 
   updateQuality(): Item[] {
-    this.items = this.items.map(updateItemQuality);
+    this.items = this.items.map(updatedItem);
 
     return this.items;
   }

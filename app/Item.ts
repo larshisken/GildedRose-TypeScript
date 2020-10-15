@@ -31,7 +31,23 @@ export const createItem = ({ name, quality, sellIn }: Item): Item => {
   return new Item(name, sellIn, quality);
 };
 
-export const updateItemQuality = (item: Item): Item => {
+export const updatedQuality = (
+  quality: number,
+  x: number,
+  [min, max]: [number, number]
+): number => {
+  if (quality + x > max) {
+    return max;
+  }
+
+  if (quality + x < min) {
+    return min;
+  }
+
+  return quality + x;
+};
+
+export const updatedItem = (item: Item): Item => {
   if (
     item.name != 'Aged Brie' &&
     item.name != 'Backstage passes to a TAFKAL80ETC concert'

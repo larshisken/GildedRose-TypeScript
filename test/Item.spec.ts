@@ -1,5 +1,5 @@
 import { expect } from 'chai';
-import { createItem, updateItemQuality } from '../app/Item';
+import { createItem, updatedItem, updatedQuality } from '../app/Item';
 
 describe('createItem', () => {
   it('quality should never be negative', () => {
@@ -41,7 +41,29 @@ describe('createItem', () => {
   });
 });
 
-describe('updateItemQuality', () => {
+describe('updatedQuality', () => {
+  it('should increase quality', () => {
+    expect(updatedQuality(0, 1, [0, 50])).to.equals(1);
+    expect(updatedQuality(1, 1, [0, 50])).to.equals(2);
+  });
+
+  it('should increase quality until max', () => {
+    expect(updatedQuality(50, 1, [0, 50])).to.equals(50);
+    expect(updatedQuality(50, 2, [0, 50])).to.equals(50);
+    expect(updatedQuality(50, 3, [0, 50])).to.equals(50);
+  });
+
+  it('should decrease quality', () => {
+    expect(updatedQuality(0, -1, [0, 50])).to.equals(0);
+    expect(updatedQuality(1, -1, [0, 50])).to.equals(0);
+  });
+
+  it('should decrease quality until min', () => {
+    expect(updatedQuality(0, -1, [0, 50])).to.equals(0);
+  });
+});
+
+describe('updatedItem', () => {
   it('should never update legendary items', () => {
     const item = {
       name: 'Sulfuras, Hand of Ragnaros',
@@ -49,12 +71,12 @@ describe('updateItemQuality', () => {
       quality: 80,
     };
 
-    expect(updateItemQuality(item)).to.deep.equals(item);
+    expect(updatedItem(item)).to.deep.equals(item);
   });
 
   it('should increase quality for items that mature', () => {
     expect(
-      updateItemQuality({
+      updatedItem({
         name: 'Aged Brie',
         sellIn: 3,
         quality: 0,
@@ -68,7 +90,7 @@ describe('updateItemQuality', () => {
 
   it('should increase quality by 2 when sellIn is higher than 5 and lte 10', () => {
     expect(
-      updateItemQuality({
+      updatedItem({
         name: 'Backstage passes to a TAFKAL80ETC concert',
         sellIn: 10,
         quality: 10,
@@ -82,7 +104,7 @@ describe('updateItemQuality', () => {
 
   it('should increase quality by 3 when sellIn is higher than 0 and lte 5', () => {
     expect(
-      updateItemQuality({
+      updatedItem({
         name: 'Backstage passes to a TAFKAL80ETC concert',
         sellIn: 5,
         quality: 10,
@@ -96,7 +118,7 @@ describe('updateItemQuality', () => {
 
   it('should drop quality to 0 when sellIn is lte 0', () => {
     expect(
-      updateItemQuality({
+      updatedItem({
         name: 'Backstage passes to a TAFKAL80ETC concert',
         sellIn: 0,
         quality: 10,
@@ -110,7 +132,7 @@ describe('updateItemQuality', () => {
 
   it('should degrade quality twice as fast when sell date has passed', () => {
     expect(
-      updateItemQuality({
+      updatedItem({
         name: '+5 Dexterity Vest',
         sellIn: -1,
         quality: 20,
@@ -124,7 +146,7 @@ describe('updateItemQuality', () => {
 
   it('should degrade quality twice as fast when an item is conjured', () => {
     expect(
-      updateItemQuality({
+      updatedItem({
         name: 'Conjured Mana Cake',
         sellIn: 3,
         quality: 6,
@@ -136,7 +158,7 @@ describe('updateItemQuality', () => {
     });
 
     expect(
-      updateItemQuality({
+      updatedItem({
         name: 'Conjured Mana Cake',
         sellIn: -1,
         quality: 6,
