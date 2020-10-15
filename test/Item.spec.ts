@@ -1,5 +1,10 @@
 import { expect } from 'chai';
-import { createItem, updatedItem, updatedQuality } from '../app/Item';
+import {
+  createItem,
+  currentDecay,
+  updatedItem,
+  updatedQuality,
+} from '../app/Item';
 
 describe('createItem', () => {
   it('quality should never be negative', () => {
@@ -24,19 +29,37 @@ describe('createItem', () => {
 
   it('quality should be lower than or equal to 80 for legendary items', () => {
     expect(() =>
-      createItem({
-        name: 'Sulfuras, Hand of Ragnaros',
-        sellIn: 0,
-        quality: 81,
-      })
+      createItem(
+        {
+          name: 'Sulfuras, Hand of Ragnaros',
+          sellIn: 0,
+          quality: 81,
+        },
+        {
+          'Sulfuras, Hand of Ragnaros': {
+            decay: 0,
+            expirationTime: 0,
+            maxQuality: 80,
+          },
+        }
+      )
     ).to.throw();
 
     expect(() =>
-      createItem({
-        name: 'Sulfuras, Hand of Ragnaros',
-        sellIn: 0,
-        quality: 80,
-      })
+      createItem(
+        {
+          name: 'Sulfuras, Hand of Ragnaros',
+          sellIn: 0,
+          quality: 80,
+        },
+        {
+          'Sulfuras, Hand of Ragnaros': {
+            decay: 0,
+            expirationTime: 0,
+            maxQuality: 80,
+          },
+        }
+      )
     ).to.not.throw();
   });
 });
@@ -63,6 +86,18 @@ describe('updatedQuality', () => {
   });
 });
 
+describe('currentDecay', () => {
+  it('must return a boolean value stating whether decay is current', () => {
+    expect(currentDecay(1)({ value: 0, min: null, max: 10 })).to.be.true;
+    expect(currentDecay(1)({ value: 0, min: 0, max: null })).to.be.true;
+    expect(currentDecay(1)({ value: 0, min: 0, max: 10 })).to.be.true;
+
+    expect(currentDecay(11)({ value: 0, min: null, max: 10 })).to.be.false;
+    expect(currentDecay(-1)({ value: 0, min: 0, max: null })).to.be.false;
+    expect(currentDecay(11)({ value: 0, min: 0, max: 10 })).to.be.false;
+  });
+});
+
 describe('updatedItem', () => {
   it('should never update legendary items', () => {
     const item = {
@@ -71,16 +106,33 @@ describe('updatedItem', () => {
       quality: 80,
     };
 
-    expect(updatedItem(item)).to.deep.equals(item);
+    expect(
+      updatedItem(item, {
+        'Sulfuras, Hand of Ragnaros': {
+          decay: 0,
+          expirationTime: 0,
+          maxQuality: 80,
+        },
+      })
+    ).to.deep.equals(item);
   });
 
   it('should increase quality for items that mature', () => {
     expect(
-      updatedItem({
-        name: 'Aged Brie',
-        sellIn: 3,
-        quality: 0,
-      })
+      updatedItem(
+        {
+          name: 'Aged Brie',
+          sellIn: 3,
+          quality: 0,
+        },
+        {
+          'Aged Brie': {
+            decay: 1,
+            expirationTime: -1,
+            maxQuality: 50,
+          },
+        }
+      )
     ).to.deep.equals({
       name: 'Aged Brie',
       sellIn: 2,
@@ -90,11 +142,26 @@ describe('updatedItem', () => {
 
   it('should increase quality by 2 when sellIn is higher than 5 and lte 10', () => {
     expect(
-      updatedItem({
-        name: 'Backstage passes to a TAFKAL80ETC concert',
-        sellIn: 10,
-        quality: 10,
-      })
+      updatedItem(
+        {
+          name: 'Backstage passes to a TAFKAL80ETC concert',
+          sellIn: 10,
+          quality: 10,
+        },
+        {
+          'Backstage passes to a TAFKAL80ETC concert': {
+            decay: [
+              {
+                max: 10,
+                min: 5,
+                value: 2,
+              },
+            ],
+            expirationTime: -1,
+            maxQuality: 50,
+          },
+        }
+      )
     ).to.deep.equals({
       name: 'Backstage passes to a TAFKAL80ETC concert',
       sellIn: 9,
@@ -104,11 +171,26 @@ describe('updatedItem', () => {
 
   it('should increase quality by 3 when sellIn is higher than 0 and lte 5', () => {
     expect(
-      updatedItem({
-        name: 'Backstage passes to a TAFKAL80ETC concert',
-        sellIn: 5,
-        quality: 10,
-      })
+      updatedItem(
+        {
+          name: 'Backstage passes to a TAFKAL80ETC concert',
+          sellIn: 5,
+          quality: 10,
+        },
+        {
+          'Backstage passes to a TAFKAL80ETC concert': {
+            decay: [
+              {
+                max: 5,
+                min: 0,
+                value: 3,
+              },
+            ],
+            expirationTime: -1,
+            maxQuality: 50,
+          },
+        }
+      )
     ).to.deep.equals({
       name: 'Backstage passes to a TAFKAL80ETC concert',
       sellIn: 4,
@@ -118,15 +200,59 @@ describe('updatedItem', () => {
 
   it('should drop quality to 0 when sellIn is lte 0', () => {
     expect(
-      updatedItem({
-        name: 'Backstage passes to a TAFKAL80ETC concert',
-        sellIn: 0,
-        quality: 10,
-      })
+      updatedItem(
+        {
+          name: 'Backstage passes to a TAFKAL80ETC concert',
+          sellIn: 0,
+          quality: 10,
+        },
+        {
+          'Backstage passes to a TAFKAL80ETC concert': {
+            decay: [
+              {
+                max: 0,
+                min: null,
+                value: Number.MIN_SAFE_INTEGER,
+              },
+            ],
+            expirationTime: -1,
+            maxQuality: 50,
+          },
+        }
+      )
     ).to.deep.equals({
       name: 'Backstage passes to a TAFKAL80ETC concert',
       sellIn: -1,
       quality: 0,
+    });
+  });
+
+  it('should use the default decay of -1 when not inside a bracket', () => {
+    expect(
+      updatedItem(
+        {
+          name: 'Backstage passes to a TAFKAL80ETC concert',
+          sellIn: 10,
+          quality: 10,
+        },
+        {
+          'Backstage passes to a TAFKAL80ETC concert': {
+            decay: [
+              {
+                max: 0,
+                min: 5,
+                value: Number.MIN_SAFE_INTEGER,
+              },
+            ],
+            expirationTime: -1,
+            maxQuality: 50,
+          },
+        }
+      )
+    ).to.deep.equals({
+      name: 'Backstage passes to a TAFKAL80ETC concert',
+      sellIn: 9,
+      quality: 9,
     });
   });
 

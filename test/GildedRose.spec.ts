@@ -45,7 +45,6 @@ describe('Gilded Rose', () => {
         sellIn: 5,
         quality: 49,
       }),
-      // @FIXME: Handle conjured items appropriately
       createItem({
         name: 'Conjured Mana Cake',
         sellIn: 3,
@@ -94,7 +93,6 @@ describe('Gilded Rose', () => {
         sellIn: 4,
         quality: 50,
       }),
-      // @FIXME: Handle conjured items appropriately
       createItem({
         name: 'Conjured Mana Cake',
         sellIn: 2,
@@ -102,8 +100,12 @@ describe('Gilded Rose', () => {
       }),
     ];
 
-    const gildedRose = new GildedRose(items);
-    const actual = gildedRose.updateQuality();
+    const gildedRose = new GildedRose();
+
+    gildedRose.items = items;
+    gildedRose.updateQuality();
+
+    const actual = gildedRose.items;
 
     expect(actual).to.deep.equals(expected);
   });

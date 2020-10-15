@@ -1,4 +1,4 @@
-import { itemConfig } from './itemConfig';
+import { DecayBracket, ITEM_CONFIG } from './itemConfig';
 
 // Belongs to the goblin in the corner
 export class Item {
@@ -13,10 +13,13 @@ export class Item {
   }
 }
 
-export const createItem = ({ name, quality, sellIn }: Item): Item => {
+export const createItem = (
+  { name, quality, sellIn }: Item,
+  config = ITEM_CONFIG
+): Item => {
   const minQuality = 0;
 
-  const { maxQuality } = itemConfig[name] || {
+  const { maxQuality } = config[name] || {
     maxQuality: 50,
   };
 
@@ -47,53 +50,36 @@ export const updatedQuality = (
   return quality + x;
 };
 
-export const updatedItem = (item: Item): Item => {
-  if (
-    item.name != 'Aged Brie' &&
-    item.name != 'Backstage passes to a TAFKAL80ETC concert'
-  ) {
-    if (item.quality > 0) {
-      if (item.name != 'Sulfuras, Hand of Ragnaros') {
-        item.quality = item.quality - 1;
-      }
-    }
-  } else {
-    if (item.quality < 50) {
-      item.quality = item.quality + 1;
-      if (item.name == 'Backstage passes to a TAFKAL80ETC concert') {
-        if (item.sellIn < 11) {
-          if (item.quality < 50) {
-            item.quality = item.quality + 1;
-          }
-        }
-        if (item.sellIn < 6) {
-          if (item.quality < 50) {
-            item.quality = item.quality + 1;
-          }
-        }
-      }
-    }
-  }
-  if (item.name != 'Sulfuras, Hand of Ragnaros') {
-    item.sellIn = item.sellIn - 1;
-  }
-  if (item.sellIn < 0) {
-    if (item.name != 'Aged Brie') {
-      if (item.name != 'Backstage passes to a TAFKAL80ETC concert') {
-        if (item.quality > 0) {
-          if (item.name != 'Sulfuras, Hand of Ragnaros') {
-            item.quality = item.quality - 1;
-          }
-        }
-      } else {
-        item.quality = item.quality - item.quality;
-      }
-    } else {
-      if (item.quality < 50) {
-        item.quality = item.quality + 1;
-      }
-    }
-  }
+export const currentDecay = (sellIn: number) => ({
+  max,
+  min,
+}: DecayBracket): boolean =>
+  (min === null || sellIn >= min) && (max === null || sellIn <= max);
 
-  return item;
+export const updatedItem = (
+  { name, sellIn, quality }: Item,
+  config = ITEM_CONFIG
+): Item => {
+  const defaultDecay = -1;
+
+  const { decay, expirationTime, maxQuality } = config[name] || {
+    decay: defaultDecay,
+    expirationTime: -1,
+    maxQuality: 50,
+  };
+
+  const decayToday =
+    typeof decay === 'number'
+      ? decay
+      : decay.find(currentDecay(sellIn))?.value || defaultDecay;
+
+  const sellInFactor = sellIn < 0 ? 2 : 1;
+
+  const qualityRange: [number, number] = [0, maxQuality];
+
+  return {
+    name,
+    quality: updatedQuality(quality, decayToday * sellInFactor, qualityRange),
+    sellIn: sellIn + expirationTime,
+  };
 };
