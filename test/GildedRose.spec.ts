@@ -103,9 +103,8 @@ describe('Gilded Rose', () => {
     ];
 
     const gildedRose = new GildedRose(items);
+    const actual = gildedRose.updateQuality();
 
-    gildedRose.updateQuality();
-
-    expect(gildedRose.items).to.deep.equals(expected);
+    expect(actual).to.deep.equals(expected);
   });
 });
