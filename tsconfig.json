@@ -1,12 +1,12 @@
 {
-    "compilerOptions": {
-        "module": "commonjs",
-        "target": "es5",
-        "strict": true,
-        "noImplicitAny": false,
-        "sourceMap": false
-    },
-    "exclude": [
-        "node_modules"
-    ]
+  "compilerOptions": {
+    "lib": ["dom", "esnext"],
+    "module": "commonjs",
+    "noImplicitAny": false,
+    "sourceMap": false,
+    "strict": true,
+    "target": "es6",
+    "typeRoots": ["node_modules/@types"]
+  },
+  "exclude": ["node_modules"]
 }
